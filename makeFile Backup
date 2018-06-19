@@ -1,0 +1,61 @@
+# Directories
+INCDIR = inc
+OBJDIR = obj
+LIBDIR = lib
+SRCDIR = src
+# Compiler defs
+CC=gcc
+cflags=-I$(INCDIR) -L$(LIBDIR) $(LIBS)
+
+
+_RUN_DEPS = main.h sts_queue.h errors.h dataStructs.h 
+_TEST_DEPS = tests.h test_runner.h test_sts_queue.h  test_TCPmain.h
+_UDP_DEPS = UDPcomm.h UDPmain.h
+_TCP_DEPS = TCPcomm.h TCPmain.h
+_FPGA_DEPS = FPGAhandler.h
+
+#LIST OF DEPS
+RUN_DEPS = $(patsubst %, $(INCDIR)/%,$(_RUN_DEPS))
+TEST_DEPS = $(patsubst %, $(INCDIR)/%,$(_TEST_DEPS))
+UDP_DEPS = $(patsubst %, $(INCDIR)/%,$(_UDP_DEPS))
+TCP_DEPS = $(patsubst %, $(INCDIR)/%,$(_TCP_DEPS))
+FPGA_DEPS = $(patsubst %, $(INCDIR)/%,$(_FPGA_DEPS))
+
+
+# LIST OF OBJECTS
+_RUN_OBJS = sts_queue.o main.o
+RUN_OBJS = $(patsubst %,$(OBJDIR)/%,$(_RUN_OBJS))
+
+_TEST_OBJS = tests.o test_sts_queue.o test_runner.o test_FPGAhandler.o test_TCPmain.o
+TEST_OBJS = $(patsubst %,$(OBJDIR)/%,$(_TEST_OBJS))
+
+_TCP_OBJS = TCPmain.o TCPcomm.o
+TCP_OBJS = $(patsubst %,$(OBJDIR)/%,$(_TCP_OBJS))
+
+_UDP_OBJS = UDPmain.o UDPcomm.o
+UDP_OBJS = $(patsubst %,$(OBJDIR)/%,$(_UDP_OBJS))
+
+_FPGA_OBJS = FPGAhandler.o
+FPGA_OBJS = $(patsubst %,$(OBJDIR)/%,$(_FPGA_OBJS))
+
+
+
+
+#RULES
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(RUN_DEPS) $(TEST_DEPS) $(UDP_DEPS) $(TCP_DEPS) $(FPGA_DEPS)
+	gcc -c -o $@ $< $(CFLAGS)
+
+#TARGETS
+
+all: main 
+
+main: $(OBJDIR)/main.o $(RUN_OBJS) $(TEST_OBJS) $(TCP_OBJS) $(UDP_OBJS) $(FPGA_OBJS)
+	gcc -pthread -o $@ $^ $(CFLAGS) $(LIBS)
+
+.PHONY: clean clean-targets
+
+clean:
+	rm -f $(OBJDIR)/*.o $(SRCDIR)/*~ core $(INCDIR)/*~ *~
+
+clean-targets:
+	rm -f main
